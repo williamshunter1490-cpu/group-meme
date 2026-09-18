@@ -1,120 +1,119 @@
 import os
+import html
 import requests
 from flask import Flask, request, jsonify, send_file
 
 app = Flask(__name__)
 
-
-@app.route("/")
+@app.get("/")
 def home():
     return send_file("index.html")
 
-
-@app.route("/api/send", methods=["GET"])
+@app.get("/api/send")
 def api_status():
     return jsonify({"status": "Mail API is running"})
 
-
-@app.route("/api/send", methods=["POST"])
+@app.post("/api/send")
 def send_email():
-    data = request.get_json(silent=True) or {}
-
-    send_from = str(data.get("from", "")).strip()
-    recipients = data.get("to", [])
-    reply_to = str(data.get("reply_to", "")).strip()
-    subject = str(data.get("subject", "")).strip()
-    body = str(data.get("body", ""))
-
-    if not send_from:
-        return jsonify({"error": "Send From is required."}), 400
-
-    if not isinstance(recipients, list) or not recipients:
-        return jsonify({"error": "At least one recipient is required."}), 400
-
-    recipients = [
-        str(email).strip()
-        for email in recipients
-        if str(email).strip()
-    ]
-
-    if not recipients:
-        return jsonify({"error": "At least one valid recipient is required."}), 400
-
-    if not subject:
-        return jsonify({"error": "Subject is required."}), 400
-
-    if not body.strip():
-        return jsonify({"error": "Email body is required."}), 400
-
-    api_token = os.environ.get("CLOUDFLARE_API_TOKEN")
-    account_id = os.environ.get("CLOUDFLARE_ACCOUNT_ID")
-
-    if not api_token:
-        return jsonify({
-            "error": "CLOUDFLARE_API_TOKEN is not configured."
-        }), 500
-
-    if not account_id:
-        return jsonify({
-            "error": "CLOUDFLARE_ACCOUNT_ID is not configured."
-        }), 500
-
-    url = (
-        f"https://api.cloudflare.com/client/v4/accounts/"
-        f"{account_id}/email/sending/send"
-    )
-
-    payload = {
-        "from": send_from,
-        "to": recipients,
-        "subject": subject,
-        "text": body,
-        "html": body.replace("\n", "<br>")
-    }
-
-    if reply_to:
-        payload["reply_to"] = reply_to
-
-    headers = {
-        "Authorization": f"Bearer {api_token}",
-        "Content-Type": "application/json"
-    }
-
     try:
+        data = request.get_json(force=True)
+
+        sender = data.get("from", "").strip()
+        recipients = data.get("to", [])
+        reply_to = data.get("reply_to", "").strip()
+        subject = data.get("subject", "").strip()
+        email_body = data.get("body", "")
+
+        if isinstance(recipients, str):
+            recipients = [x.strip() for x in recipients.splitlines() if x.strip()]
+
+        api_token = os.environ.get("CLOUDFLARE_API_TOKEN")
+        account_id = os.environ.get("CLOUDFLARE_ACCOUNT_ID")
+
+        if not api_token:
+            return jsonify({"error": "CLOUDFLARE_API_TOKEN is not configured."}), 500
+
+        if not account_id:
+            return jsonify({"error": "CLOUDFLARE_ACCOUNT_ID is not configured."}), 500
+
+        if not sender:
+            return jsonify({"error": "Send From is required."}), 400
+
+        if not recipients:
+            return jsonify({"error": "At least one recipient is required."}), 400
+
+        if not subject:
+            return jsonify({"error": "Subject is required."}), 400
+
+        cloudflare_url = (
+            "https://api.cloudflare.com/client/v4/accounts/"
+            f"{account_id}/email/sending/send"
+        )
+
+        headers = {
+            "Authorization": f"Bearer {api_token}",
+            "Content-Type": "application/json",
+        }
+
+        payload = {
+            "from": sender,
+            "to": recipients,
+            "subject": subject,
+            "text": email_body,
+            "html": "<p>" + html.escape(email_body).replace("\n", "<br>") + "</p>",
+        }
+
+
+        if reply_to:
+            payload["reply_to"] = reply_to
+
         response = requests.post(
-            url,
+            cloudflare_url,
             headers=headers,
             json=payload,
-            timeout=30
+            timeout=30,
         )
 
         try:
-            result = response.json()
+            response_data = response.json()
         except Exception:
-            result = {
-                "error": response.text or "Unknown Cloudflare response"
-            }
+            response_data = {}
 
-        if response.ok and result.get("success", True):
+        if response.ok and response_data.get("success") is True:
+            result = response_data.get("result", {})
+
+            delivered = result.get("delivered", [])
+            queued = result.get("queued", [])
+            failed = result.get("permanent_bounces", [])
+
+            results = []
+
+            for email in delivered:
+                results.append({"email": email, "status": "Sent"})
+
+            for email in queued:
+                results.append({"email": email, "status": "Sent"})
+
+            for email in failed:
+                results.append({"email": email, "status": "Failed"})
+
             return jsonify({
                 "success": True,
-                "status": "Sent"
-            }), 200
+                "results": results,
+                "sent": len(delivered) + len(queued),
+                "queued": len(queued),
+                "failed": len(failed),
+                "total": len(recipients),
+                "message_id": result.get("message_id"),
+            })
 
-        return jsonify(
-            result if isinstance(result, dict) else {
-                "error": result
-            }
-        ), response.status_code
-
-    except requests.RequestException as exc:
         return jsonify({
-            "error": f"Cloudflare request failed: {str(exc)}"
-        }), 502
+            "success": False,
+            "error": response_data.get("errors", response.text),
+        }), response.status_code
 
-
-if __name__ == "__main__":
-    app.run(
-        host="0.0.0.0",
-        port=int(os.environ.get("PORT", 5000))
-    )
+    except Exception as exc:
+        return jsonify({
+            "success": False,
+            "error": str(exc),
+        }), 500

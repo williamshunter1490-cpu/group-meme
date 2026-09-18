@@ -1,238 +1,247 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mail Console</title>
-    <style>
-        * {
-            box-sizing: border-box;
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Creative Structures Groups — Mail Console</title>
 
-        body {
-            margin: 0;
-            font-family: Arial, sans-serif;
-            background: #f4f6f8;
-            color: #17202a;
-        }
+<style>
+:root {
+    --bg: #0f172a;
+    --card: #1e293b;
+    --border: #334155;
+    --text: #f8fafc;
+    --muted: #94a3b8;
+    --accent: #3b82f6;
+    --accent-hover: #2563eb;
+    --success: #22c55e;
+    --danger: #ef4444;
+}
 
-        .container {
-            max-width: 850px;
-            margin: 50px auto;
-            padding: 30px;
-            background: white;
-            border-radius: 14px;
-            box-shadow: 0 8px 30px rgba(0,0,0,.08);
-        }
+* {
+    box-sizing: border-box;
+}
 
-        h1 {
-            margin-top: 0;
-            margin-bottom: 30px;
-        }
+body {
+    margin: 0;
+    padding: 20px;
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
 
-        .form-group {
-            margin-bottom: 20px;
-        }
+.container {
+    width: 100%;
+    max-width: 650px;
+    margin: 0 auto;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 30px;
+    box-shadow: 0 10px 25px rgba(0,0,0,.3);
+}
 
-        label {
-            display: block;
-            font-weight: 700;
-            margin-bottom: 8px;
-        }
+h2 {
+    margin-top: 0;
+    font-size: 1.25rem;
+    letter-spacing: .05em;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 15px;
+    color: #38bdf8;
+}
 
-        input,
-        textarea {
-            width: 100%;
-            padding: 13px;
-            border: 1px solid #d5dbe0;
-            border-radius: 8px;
-            font-size: 15px;
-            font-family: inherit;
-        }
+.form-group {
+    margin-bottom: 20px;
+}
 
-        textarea {
-            resize: vertical;
-        }
+label {
+    display: block;
+    margin-bottom: 8px;
+    font-size: .85rem;
+    font-weight: 600;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: .05em;
+}
 
-        #sendTo {
-            min-height: 150px;
-        }
+input,
+select,
+textarea {
+    width: 100%;
+    padding: 10px 12px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--text);
+    font-size: .95rem;
+}
 
-        #emailBody {
-            min-height: 220px;
-        }
+textarea {
+    resize: vertical;
+    min-height: 120px;
+    font-family: inherit;
+}
 
-        input:focus,
-        textarea:focus {
-            outline: none;
-            border-color: #111827;
-        }
+input:focus,
+select:focus,
+textarea:focus {
+    outline: none;
+    border-color: var(--accent);
+}
 
-        button {
-            width: 100%;
-            padding: 15px;
-            border: 0;
-            border-radius: 8px;
-            background: #111827;
-            color: white;
-            font-size: 16px;
-            font-weight: 700;
-            cursor: pointer;
-        }
+button {
+    width: 100%;
+    padding: 12px;
+    background: var(--accent);
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 1rem;
+    font-weight: bold;
+}
 
-        button:hover {
-            background: #000;
-        }
+button:hover {
+    background: var(--accent-hover);
+}
 
-        button:disabled {
-            background: #9ca3af;
-            cursor: not-allowed;
-        }
+button:disabled {
+    background: var(--border);
+    cursor: not-allowed;
+}
 
-        .status {
-            margin-top: 30px;
-            padding: 20px;
-            border-radius: 10px;
-            background: #f8fafc;
-            display: none;
-        }
+.stats-box {
+    margin-top: 25px;
+    border-top: 1px solid var(--border);
+    padding-top: 20px;
+}
 
-        .status-title {
-            font-size: 18px;
-            font-weight: 700;
-            margin-bottom: 12px;
-        }
+.stats-row {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 10px;
+    font-size: .95rem;
+}
 
-        .stats {
-            display: flex;
-            gap: 30px;
-            margin-bottom: 18px;
-        }
+.results-list {
+    margin-top: 15px;
+    max-height: 250px;
+    overflow-y: auto;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    background: var(--bg);
+    padding: 10px;
+}
 
-        .stat {
-            font-size: 15px;
-        }
+.result-item {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 7px 8px;
+    border-bottom: 1px solid var(--card);
+    font-size: .85rem;
+}
 
-        .results {
-            margin-top: 15px;
-        }
+.result-item:last-child {
+    border-bottom: none;
+}
 
-        .result {
-            padding: 10px 0;
-            border-bottom: 1px solid #e5e7eb;
-        }
+.tag-sent {
+    color: var(--success);
+    font-weight: bold;
+}
 
-        .success {
-            color: #15803d;
-        }
-
-        .failure {
-            color: #dc2626;
-        }
-
-        .sending {
-            color: #b45309;
-        }
-
-        .hint {
-            margin-top: 6px;
-            color: #6b7280;
-            font-size: 13px;
-        }
-    </style>
+.tag-failed {
+    color: var(--danger);
+    font-weight: bold;
+}
+</style>
 </head>
+
 <body>
 
 <div class="container">
-    <h1>Mail Console</h1>
+
+    <h2>CREATIVE STRUCTURES GROUPS — MAIL</h2>
 
     <div class="form-group">
-        <label for="sendFrom">Send From</label>
-        <input
-            type="email"
-            id="sendFrom"
-            placeholder="sender@example.com"
-        >
-        <div class="hint">You can change the sender address for each batch.</div>
-    </div>
-
-    <div class="form-group">
-        <label for="sendTo">Send To — Multiple Recipients</label>
-        <textarea
-            id="sendTo"
-            placeholder="recipient1@example.com&#10;recipient2@example.com&#10;recipient3@example.com"
-        ></textarea>
-        <div class="hint">Enter one email address per line. Messages are sent 10 seconds apart.</div>
-    </div>
-
-    <div class="form-group">
-        <label for="replyTo">Reply-To</label>
-        <input
-            type="email"
-            id="replyTo"
-            placeholder="reply@example.com"
-        >
-    </div>
-
-    <div class="form-group">
-        <label for="subject">Subject</label>
+        <label>Send From</label>
         <input
             type="text"
-            id="subject"
-            placeholder="Email subject"
-        >
+            id="sendFrom"
+            value="info@creativestructuresgroups.com">
     </div>
 
     <div class="form-group">
-        <label for="emailBody">Email Body</label>
+        <label>Send To — Multiple Recipients</label>
         <textarea
-            id="emailBody"
-            placeholder="Write your email here..."
-        ></textarea>
+            id="sendTo"
+            placeholder="customer1@gmail.com&#10;customer2@gmail.com&#10;customer3@gmail.com"></textarea>
     </div>
 
-    <button type="button" id="sendButton" onclick="startSending()">
+    <div class="form-group">
+        <label>Reply-To</label>
+        <input
+            type="text"
+            id="replyTo"
+            value="office@creativestructuresgroups.com">
+    </div>
+
+    <div class="form-group">
+        <label>Subject</label>
+        <select id="subject">
+            <option value="Initiative Discussion">Initiative Discussion</option>
+            <option value="Project Assistance">Project Assistance</option>
+            <option value="Company Collaboration">Company Collaboration</option>
+            <option value="Business Project Inquiry">Business Project Inquiry</option>
+            <option value="Inquiry Regarding Your Business or Project">
+                Inquiry Regarding Your Business or Project
+            </option>
+        </select>
+    </div>
+
+    <div class="form-group">
+        <label>Email Body</label>
+        <textarea id="emailBody" style="height:150px;">Greetings,
+
+Are you currently seeking financial support for your business, company, or project? If so, please reach out to learn more about how we can assist.
+
+Best regards,
+
+Ashley Mok</textarea>
+    </div>
+
+    <button id="sendBtn" type="button" onclick="startSending()">
         SEND EMAILS
     </button>
 
-    <div class="status" id="statusBox">
-        <div class="status-title" id="statusTitle">Ready</div>
+    <div class="stats-box" id="statsSection" style="display:none;">
 
-        <div class="stats">
-            <div class="stat">
-                Sent: <strong id="sentCount">0</strong>
-            </div>
-
-            <div class="stat">
-                Not Sent: <strong id="failedCount">0</strong>
-            </div>
-
-            <div class="stat">
-                Total: <strong id="totalCount">0</strong>
-            </div>
+        <div class="stats-row" id="sendingProgress">
+            <strong>Status:</strong> Ready
         </div>
 
-        <div id="progress"></div>
+        <div class="stats-row">
+            <span>
+                Sent:
+                <strong id="sentCount" style="color:var(--success)">0</strong>
+            </span>
 
-        <div class="results" id="results"></div>
+            <span>
+                Not Sent:
+                <strong id="notSentCount" style="color:var(--danger)">0</strong>
+            </span>
+        </div>
+
+        <div class="results-list" id="resultsList"></div>
+
     </div>
+
 </div>
 
 <script>
-function sleep(ms) {
-    return new Promise(resolve => setTimeout(resolve, ms));
-}
 
 async function startSending() {
-    const sendButton = document.getElementById("sendButton");
-    const statusBox = document.getElementById("statusBox");
-    const statusTitle = document.getElementById("statusTitle");
-    const sentCount = document.getElementById("sentCount");
-    const failedCount = document.getElementById("failedCount");
-    const totalCount = document.getElementById("totalCount");
-    const progress = document.getElementById("progress");
-    const results = document.getElementById("results");
-
     const sendFrom = document.getElementById("sendFrom").value.trim();
     const rawTo = document.getElementById("sendTo").value;
     const replyTo = document.getElementById("replyTo").value.trim();
@@ -254,137 +263,141 @@ async function startSending() {
         return;
     }
 
-    if (!subject.trim()) {
-        alert("Please enter a subject.");
-        return;
-    }
+    const sendBtn = document.getElementById("sendBtn");
+    const statsSection = document.getElementById("statsSection");
+    const sendingProgress = document.getElementById("sendingProgress");
+    const sentCountEl = document.getElementById("sentCount");
+    const notSentCountEl = document.getElementById("notSentCount");
+    const resultsList = document.getElementById("resultsList");
 
-    if (!body.trim()) {
-        alert("Please enter an email body.");
-        return;
-    }
+    sendBtn.disabled = true;
+    sendBtn.textContent = "SENDING...";
 
-    sendButton.disabled = true;
-    sendButton.textContent = "SENDING...";
-
-    statusBox.style.display = "block";
-    statusTitle.textContent = "Sending Batch";
-    sentCount.textContent = "0";
-    failedCount.textContent = "0";
-    totalCount.textContent = recipients.length;
-    progress.textContent = "";
-    results.innerHTML = "";
+    statsSection.style.display = "block";
+    resultsList.innerHTML = "";
+    sentCountEl.textContent = "0";
+    notSentCountEl.textContent = "0";
 
     let sent = 0;
-    let failed = 0;
+    let notSent = 0;
 
-    for (let i = 0; i < recipients.length; i++) {
-        const recipient = recipients[i];
+    try {
+        for (let index = 0; index < recipients.length; index++) {
+            const recipient = recipients[index];
 
-        progress.innerHTML =
-            `<strong>Sending ${i + 1} of ${recipients.length}</strong>` +
-            (i > 0 ? " — 10-second throttle active" : "");
+            sendingProgress.innerHTML =
+                "<strong>Sending:</strong> " +
+                (index + 1) +
+                " / " +
+                recipients.length;
 
-        const resultRow = document.createElement("div");
-        resultRow.className = "result sending";
-        resultRow.textContent =
-            `→ ${recipient}  Sending...`;
+            const item = document.createElement("div");
+            item.className = "result-item";
 
-        results.appendChild(resultRow);
+            item.innerHTML =
+                "<span>→ " +
+                recipient +
+                "</span>" +
+                '<span>Sending...</span>';
 
-        try {
-            const response = await fetch("/api/send", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify({
-                    from: sendFrom,
-                    to: [recipient],
-                    reply_to: replyTo,
-                    subject: subject,
-                    body: body
-                })
-            });
-
-            let data = {};
+            resultsList.appendChild(item);
+            resultsList.scrollTop = resultsList.scrollHeight;
 
             try {
-                data = await response.json();
-            } catch {
-                data = {};
-            }
+                const response = await fetch("/api/send", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        from: sendFrom,
+                        to: [recipient],
+                        reply_to: replyTo,
+                        subject: subject,
+                        body: body
+                    })
+                });
 
-            if (response.ok) {
-                sent++;
+                const data = await response.json();
 
-                sentCount.textContent = sent;
+                if (!response.ok || data.error || data.success === false) {
+                    let errorMessage = data.error || "Email sending failed.";
 
-                resultRow.className = "result success";
-                resultRow.textContent =
-                    `✓ ${recipient}  Sent`;
-            } else {
-                failed++;
-
-                failedCount.textContent = failed;
-
-                let errorMessage = "Send failed";
-
-                if (data.error) {
-                    if (typeof data.error === "string") {
-                        errorMessage = data.error;
-                    } else if (Array.isArray(data.error)) {
-                        errorMessage = data.error
-                            .map(e => e.message || JSON.stringify(e))
+                    if (Array.isArray(errorMessage)) {
+                        errorMessage = errorMessage
+                            .map(error => error.message || JSON.stringify(error))
                             .join(", ");
-                    } else {
-                        errorMessage = JSON.stringify(data.error);
                     }
+
+                    notSent++;
+                    notSentCountEl.textContent = notSent;
+
+                    item.innerHTML =
+                        "<span>✕ " +
+                        recipient +
+                        "</span>" +
+                        '<span class="tag-failed">Failed</span>';
+
+                    item.title = String(errorMessage);
+                } else {
+                    sent++;
+                    sentCountEl.textContent = sent;
+
+                    item.innerHTML =
+                        "<span>✓ " +
+                        recipient +
+                        "</span>" +
+                        '<span class="tag-sent">Sent</span>';
                 }
 
-                resultRow.className = "result failure";
-                resultRow.textContent =
-                    `✕ ${recipient}  ${errorMessage}`;
+            } catch (error) {
+                notSent++;
+                notSentCountEl.textContent = notSent;
+
+                item.innerHTML =
+                    "<span>✕ " +
+                    recipient +
+                    "</span>" +
+                    '<span class="tag-failed">Failed</span>';
+
+                item.title = error.message;
             }
 
-        } catch (error) {
-            failed++;
+            resultsList.scrollTop = resultsList.scrollHeight;
 
-            failedCount.textContent = failed;
+            // Wait 10 seconds before the next recipient.
+            if (index < recipients.length - 1) {
+                for (let seconds = 10; seconds > 0; seconds--) {
+                    sendingProgress.innerHTML =
+                        "<strong>Next Send In:</strong> " +
+                        seconds +
+                        " seconds";
 
-            resultRow.className = "result failure";
-            resultRow.textContent =
-                `✕ ${recipient}  ${error.message}`;
-        }
-
-        /*
-         * Wait 10 seconds before sending the next recipient.
-         * No delay is needed after the final recipient.
-         */
-        if (i < recipients.length - 1) {
-            for (let seconds = 10; seconds > 0; seconds--) {
-                progress.innerHTML =
-                    `<strong>Completed ${i + 1} of ${recipients.length}</strong>` +
-                    ` — next send in ${seconds}s`;
-
-                await sleep(1000);
+                    await new Promise(resolve =>
+                        setTimeout(resolve, 1000)
+                    );
+                }
             }
         }
+
+        sendingProgress.innerHTML =
+            "<strong>Status:</strong> Batch Complete";
+
+        // Clear recipients only after the complete batch has finished.
+        document.getElementById("sendTo").value = "";
+
+    } catch (error) {
+        sendingProgress.innerHTML =
+            "<strong>Status:</strong> Connection Error";
+
+        alert(
+            "Network or server error occurred:\n\n" +
+            error.message
+        );
+    } finally {
+        sendBtn.disabled = false;
+        sendBtn.textContent = "SEND EMAILS";
     }
-
-    statusTitle.textContent = "Batch Complete";
-
-    progress.innerHTML =
-        `<strong>Finished.</strong> ${sent} sent, ${failed} not sent.`;
-
-    sendButton.disabled = false;
-    sendButton.textContent = "SEND EMAILS";
-
-    /*
-     * Clear only the recipient box after the batch finishes.
-     * Keep the other fields so another batch can be prepared quickly.
-     */
-    document.getElementById("sendTo").value = "";
 }
 </script>
 
