@@ -1,23 +1,17 @@
 import os
 import html
 import requests
-
 from flask import Flask, request, jsonify, send_file
 
 app = Flask(__name__)
-
 
 @app.get("/")
 def home():
     return send_file("index.html")
 
-
 @app.get("/api/send")
 def api_status():
-    return jsonify({
-        "status": "Mail API is running"
-    })
-
+    return jsonify({"status": "Mail API is running"})
 
 @app.post("/api/send")
 def send_email():
@@ -32,24 +26,16 @@ def send_email():
         email_body = data.get("body", "")
 
         if isinstance(recipients, str):
-            recipients = [
-                x.strip()
-                for x in recipients.splitlines()
-                if x.strip()
-            ]
+            recipients = [x.strip() for x in recipients.splitlines() if x.strip()]
 
         api_token = os.environ.get("CLOUDFLARE_API_TOKEN")
         account_id = os.environ.get("CLOUDFLARE_ACCOUNT_ID")
 
         if not api_token:
-            return jsonify({
-                "error": "CLOUDFLARE_API_TOKEN is not configured."
-            }), 500
+            return jsonify({"error": "CLOUDFLARE_API_TOKEN is not configured."}), 500
 
         if not account_id:
-            return jsonify({
-                "error": "CLOUDFLARE_ACCOUNT_ID is not configured."
-            }), 500
+            return jsonify({"error": "CLOUDFLARE_ACCOUNT_ID is not configured."}), 500
 
         if not sender:
             return jsonify({"error": "Send From is required."}), 400
@@ -70,74 +56,67 @@ def send_email():
             "Content-Type": "application/json",
         }
 
-        results = []
+        payload = {
+            "from": sender,
+            "to": recipients,
+            "subject": subject,
+            "text": email_body,
+            "html": "<p>" + html.escape(email_body).replace("\n", "<br>") + "</p>",
+        }
 
-        for recipient in recipients:
-            try:
-                payload = {
-                    "from": sender,
-                    "to": recipient,
-                    "subject": subject,
-                    "text": email_body,
-                    "html": (
-                        "<p>"
-                        + html.escape(email_body).replace("\n", "<br>")
-                        + "</p>"
-                    ),
-                }
+        if bcc:
+            payload["bcc"] = [x.strip() for x in bcc.splitlines() if x.strip()]
 
-                if bcc:
-                    payload["bcc"] = bcc
+        if reply_to:
+            payload["reply_to"] = reply_to
 
-                if reply_to:
-                    payload["reply_to"] = reply_to
-
-                response = requests.post(
-                    cloudflare_url,
-                    headers=headers,
-                    json=payload,
-                    timeout=30,
-                )
-
-                try:
-                    response_data = response.json()
-                except Exception:
-                    response_data = {}
-
-                if response.ok and response_data.get("success", True):
-                    results.append({
-                        "email": recipient,
-                        "status": "Sent"
-                    })
-                else:
-                    results.append({
-                        "email": recipient,
-                        "status": "Failed",
-                        "reason": response.text
-                    })
-
-            except Exception as exc:
-                results.append({
-                    "email": recipient,
-                    "status": "Failed",
-                    "reason": str(exc)
-                })
-
-        sent = sum(
-            1 for result in results
-            if result["status"] == "Sent"
+        response = requests.post(
+            cloudflare_url,
+            headers=headers,
+            json=payload,
+            timeout=30,
         )
 
-        failed = len(results) - sent
+        try:
+            response_data = response.json()
+        except Exception:
+            response_data = {}
+
+        if response.ok and response_data.get("success") is True:
+            result = response_data.get("result", {})
+
+            delivered = result.get("delivered", [])
+            queued = result.get("queued", [])
+            failed = result.get("permanent_bounces", [])
+
+            results = []
+
+            for email in delivered:
+                results.append({"email": email, "status": "Sent"})
+
+            for email in queued:
+                results.append({"email": email, "status": "Queued"})
+
+            for email in failed:
+                results.append({"email": email, "status": "Failed"})
+
+            return jsonify({
+                "success": True,
+                "results": results,
+                "sent": len(delivered),
+                "queued": len(queued),
+                "failed": len(failed),
+                "total": len(recipients),
+                "message_id": result.get("message_id"),
+            })
 
         return jsonify({
-            "results": results,
-            "sent": sent,
-            "failed": failed,
-            "total": len(results)
-        })
+            "success": False,
+            "error": response_data.get("errors", response.text),
+        }), response.status_code
 
     except Exception as exc:
         return jsonify({
-            "error": str(exc)
+            "success": False,
+            "error": str(exc),
         }), 500
