@@ -56,7 +56,7 @@ def send_email():
         }
 
         payload = {
-            "from": sender,
+            "from": {"address": sender, "name": "Ashley Mok"},
             "to": recipients,
             "subject": subject,
             "text": email_body,
