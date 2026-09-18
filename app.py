@@ -62,7 +62,7 @@ def send_email():
 
         cloudflare_url = (
             "https://api.cloudflare.com/client/v4/accounts/"
-            f"{account_id}/email/sending/emails"
+            f"{account_id}/email/sending/send"
         )
 
         headers = {
