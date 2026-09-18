@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Creative Structures Groups — Mail Console</title>
+    <style>
+        :root {
+            --bg-color: #0f172a;
+            --card-bg: #1e293b;
+            --border-color: #334155;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --accent: #3b82f6;
+            --accent-hover: #2563eb;
+            --success: #22c55e;
+            --danger: #ef4444;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+        }
+        .container {
+            width: 100%;
+            max-width: 650px;
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+        }
+        h2 {
+            margin-top: 0;
+            font-size: 1.25rem;
+            letter-spacing: 0.05em;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 15px;
+            color: #38bdf8;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        input[type="text"], select, textarea {
+            width: 100%;
+            padding: 10px 12px;
+            background: #0f172a;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            color: var(--text-main);
+            font-size: 0.95rem;
+            box-sizing: border-box;
+        }
+        textarea {
+            resize: vertical;
+            height: 120px;
+            font-family: inherit;
+        }
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+        button {
+            width: 100%;
+            background: var(--accent);
+            color: white;
+            border: none;
+            padding: 12px;
+            font-size: 1rem;
+            font-weight: bold;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        button:hover {
+            background: var(--accent-hover);
+        }
+        button:disabled {
+            background: var(--border-color);
+            cursor: not-allowed;
+        }
+        .stats-box {
+            margin-top: 25px;
+            border-top: 1px solid var(--border-color);
+            padding-top: 20px;
+        }
+        .stats-row {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.95rem;
+            margin-bottom: 10px;
+        }
+        .results-list {
+            margin-top: 15px;
+            max-height: 200px;
+            overflow-y: auto;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            background: #0f172a;
+            padding: 10px;
+        }
+        .result-item {
+            font-size: 0.85rem;
+            padding: 6px 8px;
+            border-bottom: 1px solid #1e293b;
+            display: flex;
+            justify-content: space-between;
+        }
+        .result-item:last-child {
+            border-bottom: none;
+        }
+        .tag-sent { color: var(--success); font-weight: bold; }
+        .tag-failed { color: var(--danger); font-weight: bold; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>CREATIVE STRUCTURES GROUPS — MAIL</h2>
+    
+    <div class="form-group">
+        <label>Send From</label>
+        <select id="sendFrom">
+            <option value="info@creativestructuresgroups.com">info@creativestructuresgroups.com</option>
+        </select>
+    </div>
+
+    <div class="form-group">
+        <label>Send To (one email per line)</label>
+        <textarea id="sendTo" placeholder="customer1@gmail.com&#10;customer2@gmail.com"></textarea>
+    </div>
+
+    <div class="form-group">
+        <label>Reply-To</label>
+        <input type="text" id="replyTo" value="office@creativestructuresgroups.com">
+    </div>
+
+    <div class="form-group">
+<div class="form-group">
+        <label>Subject</label>
+        <select id="subject">
+            <option value="Initiative Discussion">Initiative Discussion</option>
+            <option value="Project Assistance">Project Assistance</option>
+            <option value="Company Collaboration">Company Collaboration</option>
+            <option value="Business Project Inquiry">Business Project Inquiry</option>
+            <option value="Inquiry Regarding Your Business or Project">Inquiry Regarding Your Business or Project</option>
+        </select>
+    </div>
+
+<div class="form-group">
+        <label>Email Body</label>
+        <textarea id="emailBody" style="height: 150px;">Greetings,
+
+Are you currently seeking financial support for your business, company, or project? If so, please reach out to learn more about how we can assist.
+
+Best regards,
+Ashley Mok</textarea>
+    </div>
+
+    <button id="sendBtn" onclick="startSending()">SEND EMAILS</button>
+
+    <div class="stats-box" id="statsSection" style="display:none;">
+        <div class="stats-row" id="sendingProgress"><strong>Sending:</strong> 0 / 0</div>
+        <div class="stats-row">
+            <span>Sent: <strong id="sentCount" style="color: var(--success);">0</strong></span>
+            <span>Not Sent: <strong id="notSentCount" style="color: var(--danger);">0</strong></span>
+        </div>
+        <div class="results-list" id="resultsList"></div>
+    </div>
+</div>
+
+<script>
+async function startSending() {
+    const sendFrom = document.getElementById('sendFrom').value;
+    const rawTo = document.getElementById('sendTo').value;
+    const bcc = document.getElementById('bcc').value;
+    const replyTo = document.getElementById('replyTo').value;
+    const subject = document.getElementById('subject').value;
+    const body = document.getElementById('emailBody').value;
+
+    const recipients = rawTo.split('\n').map(e => e.trim()).filter(e => e.length > 0);
+
+    if (recipients.length === 0) {
+        alert('Please enter at least one recipient email address.');
+        return;
+    }
+
+    const sendBtn = document.getElementById('sendBtn');
+    const statsSection = document.getElementById('statsSection');
+    const sendingProgress = document.getElementById('sendingProgress');
+    const sentCountEl = document.getElementById('sentCount');
+    const notSentCountEl = document.getElementById('notSentCount');
+    const resultsList = document.getElementById('resultsList');
+
+    sendBtn.disabled = true;
+    statsSection.style.display = 'block';
+    resultsList.innerHTML = '';
+    
+    let sent = 0;
+    let notSent = 0;
+    sentCountEl.innerText = sent;
+    notSentCountEl.innerText = notSent;
+
+    // Send the entire batch list to the Vercel Python API route
+    sendingProgress.innerHTML = `<strong>Status:</strong> Processing batch via Cloudflare...`;
+
+    try {
+        const response = await fetch('/api/send', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                from: sendFrom,
+                to: recipients,
+                bcc: bcc,
+                reply_to: replyTo,
+                subject: subject,
+                body: body
+            })
+        });
+
+        const data = await response.json();
+
+        if (data.error) {
+            alert('Error: ' + data.error);
+            sendBtn.disabled = false;
+            return;
+        }
+
+        // Iterate through results sequentially to animate/display the requested progressive counter view
+        let index = 1;
+        for (const res of data.results) {
+            sendingProgress.innerHTML = `<strong>Sending:</strong> ${index} / ${recipients.length}`;
+            
+            const item = document.createElement('div');
+            item.className = 'result-item';
+            
+            if (res.status === 'Sent') {
+                sent++;
+                sentCountEl.innerText = sent;
+                item.innerHTML = `<span>✓ ${res.email}</span> <span class="tag-sent">Sent</span>`;
+            } else {
+                notSent++;
+                notSentCountEl.innerText = notSent;
+                item.innerHTML = `<span>✕ ${res.email}</span> <span class="tag-failed" title="${res.reason}">Failed</span>`;
+            }
+            
+            resultsList.appendChild(item);
+            resultsList.scrollTop = resultsList.scrollHeight;
+            index++;
+            
+            // Brief pause to give visual feedback effect of live sending progress
+            await new Promise(r => setTimeout(r, 200));
+        }
+
+        sendingProgress.innerHTML = `<strong>Status:</strong> Batch Complete`;
+    } catch (err) {
+        alert('Network or server error occurred: ' + err.message);
+    } finally {
+        sendBtn.disabled = false;
+    }
+}
+</script>
+
+</body>
+</html>
