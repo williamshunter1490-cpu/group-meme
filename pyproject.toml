@@ -1,8 +1,0 @@
-[tool.vercel]
-entrypoint = "api.send:handler"
-
-[project]
-name = "mail"
-version = "1.0.0"
-requires-python = ">=3.12"
-dependencies = []
